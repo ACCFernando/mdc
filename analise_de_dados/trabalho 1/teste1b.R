@@ -31,18 +31,31 @@ alunos <- data.frame(ids=ids,
                      p4=p4)
 
 ## Você deve salvar no vetor medquad a média final de cada aluno (média quadrática das provas, desconsiderando a menor nota obtida), com duas casas decimais.
-medquad <-
+p1_sqrd = alunos$p1^2
+p2_sqrd = alunos$p2^2
+p3_sqrd = alunos$p3^2
+p4_sqrd = alunos$p4^2
+min_sqrd = -rowMins(alunos)^2;
 
+medquad_calc <- data.frame(ids=ids,
+            p1_sqrd=p1_sqrd,
+            p2_sqrd=p2_sqrd,
+            p3_sqrd=p3_sqrd,
+            p4_sqrd=p4_sqrd,
+            min_sqrd = min_sqrd
+            )
+
+medquad <- round(sqrt(rowSums(medquad_calc[2:6])), digits=2); medquad
 
 ## Você deve salvar nas variáveis mp1, mp2, mp3 e mp4 a média aritmética das notas das provas 1, 2, 3 e 4, respectivamente.
-mp1 <-
-mp2 <-
-mp3 <-
-mp4 <-
+mp1 <- mean(alunos$p1)
+mp2 <- mean(alunos$p2)
+mp3 <- mean(alunos$p3)
+mp4 <- mean(alunos$p4)
 
 
 ## Você deve salvar nas variáveis d1, dp2, dp3 e dp4 o desvio padrão das notas das provas 1, 2, 3 e 4, respectivamente.
-dp1 <-
-dp2 <-
-dp3 <-
-dp4 <-
+dp1 <- sd(alunos$p1)
+dp2 <- sd(alunos$p2)
+dp3 <- sd(alunos$p3)
+dp4 <- sd(alunos$p4)

@@ -19,25 +19,24 @@ chuva <- c(0.15, 0.02, 0.01, 0.13, 0.12, 2.19, 1.11, 0.76, 2.98, 0.45, 2.63, 0.7
 
 ## Perguntas:
 ## Você deve criar, na variável leituras, um data frame utilizando os vetores fornecidos e, sempre que utilizar algum dado desses vetores, referir-se apenas a esse data frame (ou seja, você só pode utilizar os vetores fornecidos para criar esse data frame).
-leituras <-
-
+leituras <- data.frame(dia=dia,
+                       cidade=cidade,
+                       chuva=chuva)
 
 ## Você deve remover do data frame leituras todas as linhas $i$ tais que exista uma linha $j$ com $j > i$ e que os campos contendo dia e cidade sejam o mesmo em $i$ e $j$.
-leituras <- 
-
+leituras <- leituras[!duplicated(leituras[,c('dia', 'cidade')], fromLast=TRUE),]
 
 ## Salve nas variáveis acumCamp, acumLim e acumVin o total de chuvas observados nos 15 dias nas cidades de Campinas, Limeira e Vinhedo, respectivamente.
-acumCamp <-
-acumLim <-
-acumVin <-
+acumCamp <- sum(leituras[leituras$cidade == "Campinas",]$chuva)
+acumLim <- sum(leituras[leituras$cidade == "Limeira",]$chuva)
+acumVin <- sum(leituras[leituras$cidade == "Vinhedo",]$chuva)
 
 ## Você deve salvar nas variáveis dmaxCamp, dmaxLim e dmaxVin, dentre os dados existentes em seu data frame, o dia do mês com maior leitura de chuva nas cidades de Campinas, Limeira e Vinhedo, respectivamente. Se existir mais de um dia com o valor máximo, você pode escolher qualquer um dos dias. Caso uma cidade não tenha leitura em algum dia, aquele dia deve ser ignorado.
-dmaxCamp <-
-dmaxLim <-
-dmaxVin <-
-
+dmaxCamp <- leituras[leituras$chuva == max(leituras[leituras$cidade == "Campinas",]$chuva),]$dia
+dmaxLim <- leituras[leituras$chuva == max(leituras[leituras$cidade == "Limeira",]$chuva),]$dia
+dmaxVin <- leituras[leituras$chuva == max(leituras[leituras$cidade == "Vinhedo",]$chuva),]$dia
 
 ## Você deve salvar nas variáveis dminCamp, dminLim e dminVin, dentre os dados existentes em seu data frame, o dia do mês com menor leitura de chuva nas cidades de Campinas, Limeira e Vinhedo, respectivamente. Se existir mais de um dia com o valor mínimo, você pode escolher qualquer um dos dias. Caso uma cidade não tenha leitura em algum dia, aquele dia deve ser ignorado.
-dminCamp <-
-dminLim <-
-dminVin <-
+dminCamp <- leituras[leituras$chuva == min(leituras[leituras$cidade == "Campinas",]$chuva),]$dia
+dminLim <- leituras[leituras$chuva == min(leituras[leituras$cidade == "Limeira",]$chuva),]$dia
+dminVin <- leituras[leituras$chuva == min(leituras[leituras$cidade == "Vinhedo",]$chuva),]$dia
