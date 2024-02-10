@@ -125,6 +125,7 @@ computa_resultados <- function(query, ground_truth, stats, stat_name,
   
   # Gerando o plot Precisão + Revocação (função do arquivo base)
   plot_prec_e_rev(ranking$doc_id, ground_truth, top, text)
+  
 }
 
 # Definindo a consulta 1 
@@ -181,10 +182,12 @@ computa_resultados(consulta2, ground_truths[n_consulta2, ],
 #
 ######################################################################
 
-#
-#
-#
-#
+# Para as consultas analisadas (ids 23 e 55) o modelo BM25 teve uma perfomance
+# melhor em termos de precisão e revocação. Portanto, para as consultas escolhidas
+# o modelo BM25 teve uma perfomance melhor. 
+# Porém, para termos uma avaliação mais crítica é necessário avaliarmos nossas métricas
+# sobre todas as consultas disponíveis e utilizar outros métodos de avaliação entre 
+# rankings, como por exemplo a interpolação média de 11 pontos de um método contra o outro.
 
 ######################################################################
 #
@@ -256,10 +259,13 @@ computa_resultados(consulta2_proc, ground_truths[n_consulta2_proc, ],
 # Questão 3 - Escreva sua análise abaixo
 #
 ######################################################################
-# 
-# 
-# 
-# 
+
+# Para as consultas utilizadas na questão (ids 23 e 55) não houve melhora de 
+# perfomance tanto em precisão quanto em revocação. Portanto, a remoção de stopwords
+# não trouxe melhora para estes casos. 
+# Novamente, se quisermos avaliar com mais rigor o possível benefício da remoção de 
+# stopwords para o contexto em questão é necessário avaliarmos os nossos modelos 
+# sobre todo o conjunto de teste/ground truth.
 
 
 ######################################################################
@@ -270,11 +276,11 @@ computa_resultados(consulta2_proc, ground_truths[n_consulta2_proc, ],
 # Rstudio no momemto da execução. Esse comando pode ajudar a comparar 
 # os gráfico lado a lado.
 # 
-# plots.dir.path <- list.files(tempdir(), pattern="rs-graphics",
-#                              full.names = TRUE);
-# plots.png.paths <- list.files(plots.dir.path, pattern=".png", 
-#                               full.names = TRUE)
-# file.copy(from=plots.png.paths, to="~/Desktop/")
+plots.dir.path <- list.files(tempdir(), pattern="rs-graphics",
+                              full.names = TRUE);
+plots.png.paths <- list.files(plots.dir.path, pattern=".png", 
+                               full.names = TRUE)
+file.copy(from=plots.png.paths, to="~/Desktop/")
 ######################################################################
 
 
