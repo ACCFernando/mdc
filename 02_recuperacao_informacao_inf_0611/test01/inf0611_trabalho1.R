@@ -5,7 +5,7 @@
 ######################################################################
 # Nome COMPLETO dos integrantes do grupo:                            #
 #   - Leonardo Cesar Silva dos Santos                                #
-#   - Fernando Augusto Candalaft                                     #
+#   - Fernando Augusto Cardoso Candalaft                             #
 #                                                                    #
 ######################################################################
 
