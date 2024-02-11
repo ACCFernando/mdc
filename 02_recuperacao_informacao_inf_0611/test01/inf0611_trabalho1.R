@@ -118,10 +118,17 @@ computa_resultados <- function(query, ground_truth, stats, stat_name,
 
   # Calculando a revocação
   r <- recall(ground_truth, ranking$doc_id, top)
+  
+  # Calulando a taxa F1
+  f1 <- f1_score(ground_truth, ranking$doc_id, top)
+  
+  # Calculando a precisao media
+  pm <- ap(ground_truth, ranking$doc_id, top)
 
-  # Imprimindo os valores de precisão e revocação
+  # Imprimindo os valores de precisão, revocação, F1 e precisao media
   cat(paste("Consulta: ", query[1,1], "\nPrecisão: ", p, 
-            "\tRevocação: ", r, "\n"))
+            "\tRevocação: ", r, "\tTaxa F1: ", f1, 
+            "\tPrecisao Media: ", pm, "\n"))
   
   # Gerando o plot Precisão + Revocação (função do arquivo base)
   plot_prec_e_rev(ranking$doc_id, ground_truth, top, text)
@@ -152,13 +159,15 @@ n_consulta1 <- 23
 computa_resultados(consulta1, ground_truths[n_consulta1, ], 
                    docs_stats, "tf_idf", 
                    top=20, "Ranking para o modelo tf-idf")
-# Precisão:  0.15 	Revocação:  0.6
+# Consulta:  23 
+# Precisão:  0.15 	Revocação:  0.6 	Taxa F1:  0.24 	Precisao Media:  0.55
 
 # Resultados para a consulta 1 e bm25
 computa_resultados(consulta1, ground_truths[n_consulta1, ], 
                    docs_stats, "bm25", 
                    top=20, "Ranking para o modelo bm25")
-# Precisão:  0.2 	Revocação:  0.8
+# Consulta:  23 
+# Precisão:  0.2 	Revocação:  0.8 	Taxa F1:  0.32 	Precisao Media:  0.64
 
 # Definindo a consulta 2 
 consulta2 <- queries[queries$doc_id == "Query_055",]; consulta2
@@ -168,13 +177,15 @@ n_consulta2 <- 55
 computa_resultados(consulta2, ground_truths[n_consulta2, ], 
                    docs_stats, "tf_idf", 
                    top=20, "Ranking para o modelo tf-idf - consulta 2")
-# Precisão:  0.05 	Revocação:  0.5 
+# Consulta:  55 
+# Precisão:  0.05 	Revocação:  0.5 	Taxa F1:  0.091 	Precisao Media:  0.5
 
 # Resultados para a consulta 2 e bm25
 computa_resultados(consulta2, ground_truths[n_consulta2, ], 
                    docs_stats, "bm25", 
                    top=20, "Ranking para o modelo bm25 - consulta 2")
-# Precisão:  0.05 	Revocação:  0.5
+# Consulta:  55 
+# Precisão:  0.05 	Revocação:  0.5 	Taxa F1:  0.091 	Precisao Media:  0.5 
 
 ######################################################################
 #
@@ -183,8 +194,11 @@ computa_resultados(consulta2, ground_truths[n_consulta2, ],
 ######################################################################
 
 # Para as consultas analisadas (ids 23 e 55) o modelo BM25 teve uma perfomance
-# melhor em termos de precisão e revocação. Portanto, para as consultas escolhidas
-# o modelo BM25 teve uma perfomance melhor. 
+# melhor em termos de precisão, revocação, taxa F1 e precisao media quando analisado
+# sobre a consulta com id 23 (Precisão: 0.2, Revocação: 0.8, Taxa F1: 0.32,	Precisao Media: 0.64). 
+# Já para a consulta com id 55 ambos os modelos tiveram a mesma performance. 
+# Portanto, para as consultas escolhidas o modelo BM25 teve uma perfomance levemente 
+# melhor que o modelo TF-IDF. 
 # Porém, para termos uma avaliação mais crítica é necessário avaliarmos nossas métricas
 # sobre todas as consultas disponíveis e utilizar outros métodos de avaliação entre 
 # rankings, como por exemplo a interpolação média de 11 pontos de um método contra o outro.
@@ -231,13 +245,15 @@ n_consulta1_proc <- 23
 computa_resultados(consulta1_proc, ground_truths[n_consulta1_proc, ], 
                    docs_stats, "tf_idf", 
                    top=20, "Ranking para o modelo tf-idf - consulta 1")
-# Precisão:  0.15 	Revocação:  0.6 
+# Consulta:  23 
+# Precisão:  0.15 	Revocação:  0.6 	Taxa F1:  0.24 	Precisao Media:  0.55
 
 # Resultados para a consulta 1 e bm25
 computa_resultados(consulta1_proc, ground_truths[n_consulta1_proc, ], 
                    docs_stats, "bm25", 
                    top=20, "Ranking para o modelo bm25 - consulta 1")
-# Precisão:  0.2 	Revocação:  0.8
+# Consulta:  23 
+# Precisão:  0.2 	Revocação:  0.8 	Taxa F1:  0.32 	Precisao Media:  0.647058823529412
 
 # Definindo a consulta 2 
 consulta2_proc <- queries_proc[queries_proc$doc_id == "Query_055",]; consulta2_proc
@@ -246,13 +262,15 @@ n_consulta2_proc <- 55
 computa_resultados(consulta2_proc, ground_truths[n_consulta2_proc, ], 
                    docs_stats, "tf_idf", 
                    top=20, "Ranking para o modelo tf-idf - consulta 2")
-# Precisão:  0.05 	Revocação:  0.5 
+# Consulta:  55 
+# Precisão:  0.05 	Revocação:  0.5 	Taxa F1:  0.091 	Precisao Media:  0.5  
 
 # Resultados para a consulta 1 e bm25
 computa_resultados(consulta2_proc, ground_truths[n_consulta2_proc, ], 
                    docs_stats, "bm25", 
                    top=20, "Ranking para o modelo bm25 - consulta 2")
-# Precisão:  0.05 	Revocação:  0.5
+# Consulta:  55 
+# Precisão:  0.05 	Revocação:  0.5 	Taxa F1:  0.091 	Precisao Media:  0.5
 
 ######################################################################
 #
@@ -261,11 +279,11 @@ computa_resultados(consulta2_proc, ground_truths[n_consulta2_proc, ],
 ######################################################################
 
 # Para as consultas utilizadas na questão (ids 23 e 55) não houve melhora de 
-# perfomance tanto em precisão quanto em revocação. Portanto, a remoção de stopwords
-# não trouxe melhora para estes casos. 
+# perfomance para as métricas analisadas (precisão, revocação, taxa F1 e precisão média). 
+# Portanto, a remoção de stopwords não trouxe melhora para estes casos. 
 # Novamente, se quisermos avaliar com mais rigor o possível benefício da remoção de 
 # stopwords para o contexto em questão é necessário avaliarmos os nossos modelos 
-# sobre todo o conjunto de teste/ground truth.
+# sobre todas as consultas de teste e seus respectivos ground truth.
 
 
 ######################################################################
