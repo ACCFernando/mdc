@@ -1,6 +1,6 @@
 ########################################
 # Teste 1a - INF-0612          
-# Nome(s): Fernando Candalaft, Leonardo Cesar
+# Nome(s): Fernando Candalaft, Leonardo Cesar Silva dos Santos
 ########################################
 
 ## Os vetores C, L e V representam os produtos distribuidos nas cidades de Campinas, Limeira e Vinhedo, respectivamente.
