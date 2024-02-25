@@ -50,15 +50,6 @@ ground_truth_regia # Testando ground truth da classe "regia"
 #----------------------------------------------------------------#
 
 # obtem caracteristicas de cor  
-# hist_cor_desc <- function(img){
-# 
-#     r <- hist(img[,,1]*255, plot=FALSE, breaks=0:255)$counts
-#     g <- hist(img[,,2]*255, plot=FALSE, breaks=0:255)$counts
-#     b <- hist(img[,,3]*255, plot=FALSE, breaks=0:255)$counts
-#     
-#     return(c(r, g, b))
-# }
-
 hist_cor_desc <- function(img){
   # separa em RGB
   canal_vermelho <- img[,,1]
