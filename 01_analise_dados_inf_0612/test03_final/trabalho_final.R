@@ -126,9 +126,13 @@ consecutive <- function(vector, k=2) {
 
 # Verificando temperaturas consecutivas em um dia 
 # (As chances de nao termos nenhuma variacao de temperatura em um dia sao muito baixas)
-any(consecutive(cepagri_df$vl_temp, k=1440))
-repeated_temps <- consecutive(cepagri_df$vl_temp, k=144) # Dia com erro na coleta
+any(consecutive(cepagri_df$vl_temp, k=144))
+repeated_temps <- consecutive(cepagri_df$vl_temp, k=144) # Dia com erro na coleta: 10003
 repeated_temps[1:10]
+sum(repeated_temps) # 10003
+
+cepagri_df[repeated_temps, ]
+
 # Datas com repeticao consecutiva de temperaturas
 cepagri_df[, 1] <- as.POSIXct(cepagri_df[, 1],
                                format='%d/%m/%Y-%H:%M', 
@@ -144,23 +148,32 @@ cepagri_df$cd_dia <- day(cepagri_df$dt_dhora)
 cepagri_df$cd_ano <- year(cepagri_df$dt_dhora)
 cepagri_df$cd_mes <- month(cepagri_df$dt_dhora)
 
-cepagri_df <- cepagri_df[, -which(names(cepagri_df) == "dt_dhora")]
+cepagri_df <- cepagri_df[cepagri_df$cd_ano %in% c(2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023), ]
 dim(cepagri_df)
 
-temp_error_dates <- cepagri_df[repeated_temps, 1]
-length(temp_error_dates) # Quantidade de datas com temperatura repetida: 10003
-temp_error_dates[1:145]
-cepagri_df[cepagri_df$dt_dhora %in% temp_error_dates[1:145], ]
-length(unique(as.Date(temp_error_dates)))
-# Vamos olhar somente as horas ao longo dos dias, nao olhando para os intervalos de coleta dentro
-# do periodo de 1 hora
-
-# Verificando dados duplicados
+# Fazendo a copia do dataframe para nao perder os dados originais
 cepag_df = data.frame(cepagri_df)
 head(cepag_df)
+dim(cepag_df) # 427405
 
-dim(cepag_df) # 477230
-sum(duplicated(cepag_df[, 1:8])) # 32558
+# Removendo valores de temperatura que se repetem consecutivamente em um dia 
+# (k=144 = 6 coletas por hora * 24 horas)
+sum(consecutive(cepag_df$vl_temp, k=144)) # 9801
+head(cepag_df[consecutive(cepag_df$vl_temp, k=144), ])
+
+filter_values <- !consecutive(cepag_df$vl_temp, k=144)
+dim(cepag_df[filter_values, ]) # 417604 = 427405 - 9801
+
+# Vamos olhar somente as horas ao longo dos dias, nao olhando para os intervalos de 
+# coleta dentro do periodo de 1 hora
+cepag_df <- cepag_df[, -which(names(cepag_df) == "dt_dhora")]
+dim(cepag_df)
+
+# Verificando dados duplicados
+head(cepag_df)
+
+dim(cepag_df) # 427405
+sum(duplicated(cepag_df)) # 30368
 
 dim(distinct(cepag_df, 
              vl_temp, 
@@ -170,7 +183,7 @@ dim(distinct(cepag_df,
              cd_hora, 
              cd_dia, 
              cd_ano, 
-             cd_mes)) # 444672
+             cd_mes)) # 397037
 
 # Remocao de linhas duplicadas
 cepag_df <- distinct(cepag_df, 
@@ -181,22 +194,28 @@ cepag_df <- distinct(cepag_df,
                      cd_hora, 
                      cd_dia, 
                      cd_ano, 
-                     cd_mes); dim(cepag_df) # 444672
-
-sum(consecutive(cepag_df$vl_temp, k=144)) # 430
-head(cepag_df[consecutive(cepag_df$vl_temp, k=144), ])
-
-filter_values <- !consecutive(cepag_df$vl_temp, k=144)
-dim(cepag_df[filter_values, ]) # 444242 = 444672 - 430
-
-cepag_df <- cepag_df[filter_values, ]
-dim(cepag_df)
+                     cd_mes); dim(cepag_df) # 397037
 
 head(cepag_df)
-
+names(cepag_df)
 ### Analise dos dados
 summary(cepag_df)
-
+# vl_temp       vl_vel_vento      vl_umidade      vl_stermica       cd_hora     
+# Min.   : 4.60   Min.   :  0.00   Min.   :  0.00   Min.   :-8.00   Min.   : 0.00  
+# 1st Qu.:18.50   1st Qu.:  9.80   1st Qu.: 56.00   1st Qu.:16.70   1st Qu.: 6.00  
+# Median :21.40   Median : 18.20   Median : 72.40   Median :19.90   Median :12.00  
+# Mean   :21.89   Mean   : 21.98   Mean   : 68.81   Mean   :19.94   Mean   :11.61  
+# 3rd Qu.:25.40   3rd Qu.: 29.90   3rd Qu.: 83.00   3rd Qu.:23.90   3rd Qu.:18.00  
+# Max.   :38.00   Max.   :143.60   Max.   :100.00   Max.   :34.30   Max.   :23.00  
+# NA's   :20796                  
+#      cd_dia         cd_ano         cd_mes      
+#  Min.   : 1.0   Min.   :2015   Min.   : 1.000  
+#  1st Qu.: 8.0   1st Qu.:2016   1st Qu.: 3.000  
+#  Median :16.0   Median :2019   Median : 6.000  
+#  Mean   :15.7   Mean   :2019   Mean   : 6.334  
+#  3rd Qu.:23.0   3rd Qu.:2021   3rd Qu.: 9.000  
+#  Max.   :31.0   Max.   :2023   Max.   :12.000 
+ 
 cepag_df$cd_hora <- as.factor(cepag_df$cd_hora)
 cepag_df$cd_dia <- as.factor(cepag_df$cd_dia)
 cepag_df$cd_mes <- as.factor(cepag_df$cd_mes)
@@ -414,11 +433,6 @@ plot7 <- ggplot(agg_diff_df,
         geom_line(aes(y=diff_mean_umid, color="Umidade")) +
         labs(x="Mês", y="Diferença", 
              title="Relação de temperatura e umidade média: 2023 vs 2019")
-        # scale_y_continuous(
-        #   name="Diferença de temperatura média",
-        #   sec.axis = sec_axis(~.*1, name="Diferença de umidade média")) +
-        #   scale_fill_brewer(palette="Pastel1") +
-
 plot7
 # A temperatura média entre 2023 e 2019 foi bastante semelhante, mesmo com uma
 # diferença consideravel em termos de umidade, no caso, 2019 com muito mais
@@ -496,12 +510,12 @@ get_dist_area <- function(ano, base_col) {
   
 }
 
-get_dist_area(2019, "vl_temp")
-get_dist_area(2019, "vl_umidade")
+# Avaliando a area para a distribuicao de temperaturas e umidades para 
+# 2019 e 2023
+get_dist_area(2019, "vl_temp") # [1] 1.000616
+get_dist_area(2019, "vl_umidade") # [1] 0.9893467
 
-get_dist_area(2023, "vl_temp")
-get_dist_area(2023, "vl_umidade")
-# Apesar de valores diferentes, os mesmos ainda sao muito proximo, mostrado que de 
-# modo geral 2023 e 2019 tiveram um comportamento semelhante em uma visao macro
-# apesar de uma certa diferenca quando olhamos mensalmente
+get_dist_area(2023, "vl_temp") # [1] 1.000767
+get_dist_area(2023, "vl_umidade") # [1] 0.9946742
+
 
