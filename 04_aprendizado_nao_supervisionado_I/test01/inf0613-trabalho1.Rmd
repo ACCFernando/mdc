@@ -107,6 +107,8 @@ a) Quais as regras mais interessantes geradas a partir dessa base? Justifique.
 **Resposta:** <!-- Escreva sua resposta abaixo -->
 As regras mais interessantes foram dadas pelo algoritmo Apriori considerando os valores de suporte = 0.005 e uma confiança = 0.7. Escolhemos esses valores de suporte e confiança dado que nosso conjunto de dados possuia poucos itens com valores frequentes e muitos com valores pouco frequentes e o intuito era capturar uma quantidade intermediária de regras de associação, isto é, um valor de suporte baixo para trazer mais regras e um valor de confiança alto para filtrar os casos de ocorrência. O intuito de tal ação foi capturar relacionamentos não explicítos nas nossas transações, dado que é senso comum que em uma padaria a expectativa é que Coffee e Bread sejam os itens mais consumidos, por exemplo.
 Classificamos as regras mais interessante como sendo as com um valor de lift elevado e uma confiança também elevada, listadas abaixo.
+
+```
      lhs                        rhs      support confidence coverage  lift count
 [1]  {Extra Salami or Feta}  => {Salad}  0.00620      0.800  0.00775 31.26    16
 [2]  {Coffee,                                                                   
@@ -114,6 +116,7 @@ Classificamos as regras mais interessante como sendo as com um valor de lift ele
 [3]  {Extra Salami or Feta}  => {Coffee} 0.00698      0.900  0.00775  1.65    18
 [4]  {Extra Salami or Feta,                                                     
       Salad}                 => {Coffee} 0.00543      0.875  0.00620  1.61    14
+```
 
 <!-- Fim da resposta -->
 
@@ -159,10 +162,13 @@ a) Quais as regras mais interessantes do conjunto? Justifique.
 
 **Resposta:** <!-- Escreva sua resposta abaixo -->
 As regras mais interessantes encontradas foram aquelas que possuiam valores altos em lift, conviction e oddsRatio, dadas abaixo:
+
+```
      lhs                        rhs      support confidence coverage  lift count conviction oddsRatio
 [1]  {Extra Salami or Feta}  => {Salad}  0.00620      0.800  0.00775 31.26    16       4.87    200.72
-[2]  {Coffee,                                                                                        
-      Extra Salami or Feta}  => {Salad}  0.00543      0.778  0.00698 30.39    14       4.38    168.88
+[2]  {Coffee, Extra Salami or Feta}  => {Salad}  0.00543      0.778  0.00698 30.39    14       4.38    168.88
+
+```
       
 Escolhemos tais regras por conta de explicitarem relacionamentos não triviais que podemos ter entre os produtos de uma padaria. Também levamos em conta o fato de que quanto maior o valor de lift mais certo é que os itens do conjunto esquerdo influenciem nos itens do conjunto direito. O mesmo conceito se aplica para a métrica OddsRatio e no caso da métrica conviction temos que valores entre 1 e 5 representam boas regras, que é o nosso caso.
 <!-- Fim da resposta -->
