@@ -13,7 +13,7 @@
 #----------------------------------------------------------------#
 # configure o caminho antes de executar
 # configuração da pasta local
-setwd("C:\\Users\\ferna\\Documents\\aulas\\01. Mineração de Dados Complexos - Unicamp\\repo\\recup_info\\trabalho 2")
+setwd("C:\\Users\\ferna\\Documents\\rep\\mdc\\02.recuperacao_de_informacao\\03.recuperacao_de_imagem\\trabalho")
 options(warn=-1)
 #libs e imports
 source("./ranking_metrics.R")
@@ -259,6 +259,10 @@ analyse_rankings(ranking_s_regia, ground_truth_regia)
 mean(analyse_rankings(ranking_c_europaea, ground_truth_europaea)$precisao_media) #0.7
 mean(analyse_rankings(ranking_t_europaea, ground_truth_europaea)$precisao_media) #0.9
 mean(analyse_rankings(ranking_s_europaea, ground_truth_europaea)$precisao_media) #1.0
+# ERRO: pegaram a precisão média em diversos topos da consulta usada no item e) e fez a
+#média, porém isso está errado. A média das precisões médias considera a precisão média 
+#de diversas consultas em um topo e depois faz a média
+
 
 #O descritor que obteve os melhores rankings foi o de forma
 #                                         
@@ -306,4 +310,7 @@ analyse_rankings(ranking_concat_regia, ground_truth_regia)
 # O descritor de textura, que possuia métricas mais baixas na avaliação comparado aos outros descritores
 # Isso pode ocorrer porque não há considerável diferença de textura entre as plantas relativamente à sua aspereza.
 # Portanto textura pode ter sido o descritor que abaixou as métricas ao combinar com os outros.
+#ERRO: indicaram que textura teve o maior impacto, porém o ranking concatenado ficou igual ao de forma, então o 
+#impacto ocorreu pela forma
+
 #----------------------------------------------------------------#
