@@ -103,6 +103,7 @@ dim(train_df) # [1] 9336   19
 
 ## Inspecao dos dados
 head(train_df)
+hist(train_df$target)
 
 summary(train_df) # Coluna categorica: weekday
 # Checando os valores unicos da coluna weekday
