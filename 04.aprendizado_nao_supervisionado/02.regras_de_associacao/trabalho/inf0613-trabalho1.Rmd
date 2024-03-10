@@ -1,0 +1,175 @@
+---
+title: INF0613 -- Aprendizado de Máquina Não Supervisionado
+output: pdf_document
+subtitle: Trabalho 1 - Regras de Associação
+author: 
+  - Leonardo Cesar Silva dos Santos
+  - Fernando Augusto Cardoso Candalaft
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = FALSE, message = FALSE, warning = FALSE, tidy = FALSE)
+options(digits = 3)
+```
+
+Neste primeiro trabalho vamos minerar Regras de Associação em uma base de dados que contém as vendas de uma padaria. A base de dados está disponível na página da disciplina no Moodle (arquivo `bakery.csv`).
+
+# Atividade 0 -- Configurando o ambiente
+Antes de começar a implementação do seu trabalho configure o _workspace_ e importe todos os pacotes:
+
+```{r atv0-code}
+# Adicione os demais pacotes usados
+# Bibliotecas usadas neste trabalho:
+library(arules)
+library(arulesViz)
+
+# Configurando ambiente de trabalho:
+setwd("~/workspace/mdc/04_aprendizado_nao_supervisionado_I/test01")
+
+```
+
+
+# Atividade 1 -- Análise Exploratória da Base de Dados (*3,0 pts*)
+
+Dado um caminho para uma base de dados, leia as transações e faça uma análise Exploratória sobre elas. Use as funções `summary`,  `inspect` e `itemFrequencyPlot`. Na função `inspect` limite sua análise às 10 primeiras transações e na função `itemFrequencyPlot` gere um gráfico com a frequência relativa dos 30 itens mais frequentes. 
+
+```{r atv1-code}
+# Ler transações
+bakery_path <- "./bakery.csv"
+bakery_data <- read.transactions(bakery_path, format="basket", sep=",")
+
+# Visualizando transações
+inspect(bakery_data[1:10], linebreak=T)
+
+# Sumário da base
+summary(bakery_data)
+
+# Analisando a frequência dos itens 
+itemFrequencyPlot(bakery_data, topN=30, type="relative")
+
+```
+
+
+## Análise 
+
+a) Descreva a base de dados discutindo os resultados das funções acima. 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+Os dados utilizados ("bakery") apresentam valores transacionais no formato {bread, tea, etc.}. A base utilizada possui 2579 transações e um total de 91 itens.
+Constatamos por meio da sumarização das informações que os itens mais frequentes são Coffee, Bread, Tea, Cake e Pastry, com frequências 1403, 848, 617, 515 e 342, respectivamente. Coffee representa uma frequência relativa próxima de 60% e Bread representa uma frequência relativa próxima de 30%. Estes dois itens são os mais frequentes, algo que faz sentido, dado que são complementares na alimentação do dia a dia no contexto de uma padaria.
+
+<!-- Fim da resposta -->
+
+b) Ao gerarmos o gráfico de frequências, temos uma representação visual de uma informação já presente no resultado da função `summary`. Contudo, esse gráfico nos dá uma visão mais ampla da base. Assim podemos ver a frequência de outros itens em relação aos 10 mais frequentes. Quais informações podemos obter a partir desse gráfico (e da análise anterior) para nos ajudar na extração de regras de associação com o algoritmo `apriori`? Isto é, como a frequência dos itens pode afetar os parâmetros de configuração do algoritmo `apriori`? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+O algoritmo Apriori utiliza o que chamamos de propriedade anti-monotônica do suporte, isto é, usa o fato de que se um conjunto de itens é frequente, então todos os seus subcojuntos também são. Portanto, itens frequentes ajudam o método Apriori a percorrer um espaço menor de possíveis regras para um determinado limiar de suporte.
+O fato de termos poucos itens com alta frequência indica que devemos escolher com cuidado nossos valores de suporte e confiança no algoritmo Apriori, dado que um suporte relativamente alto pode não trazer informações de relação para itens mais raros, de modo que podemos perder informações relevante. Temos algo semelhante para um suporte alto, que pode acarretar em um valor elevado de regras de associação. 
+No nosso problema iremos explorar valores de suporte baixos, dado que vamos buscar captar regras não triviais, uma vez que em uma padaria já é esperado que os clientes comprem café, pão, bolo etc.
+
+<!-- Fim da resposta -->
+
+# Atividade 2 -- Minerando Regras (*3,5 pts*)
+
+Use o algoritmo `apriori` para minerar regras na base de dados fornecida. Experimente com pelo menos *3 conjuntos* de valores diferentes de suporte e confiança para encontrar regras de associação. Imprima as cinco regras com o maior confiança de cada conjunto escolhido.  Lembre-se de usar seu conhecimento sobre a base, obtido na questão anterior, para a escolha dos valores de suporte e confiança.
+
+```{r atv2-code}
+# Conjunto 1: suporte = 0.05 e confiança = 0.5
+regras01 <- apriori(bakery_data, 
+                    parameter=list(supp=0.05, conf=0.5))
+regras01
+inspect(regras01, linebreak=T)
+
+# Conjunto 2: suporte = 0.005 e confiança = 0.7
+regras02 <- apriori(bakery_data, 
+                    parameter=list(supp=0.005, conf=0.7))
+regras02
+inspect(regras02, linebreak=T)
+
+# Conjunto 3: suporte = 0.001 e confiança = 0.7  
+regras03 <- apriori(bakery_data, 
+                    parameter=list(supp=0.001, conf=0.7))
+regras03
+inspect(regras03, linebreak=T)
+
+regras02_sorted <- sort(regras02, by=c("lift", "confidence"), decreasing=T)
+inspect(regras02_sorted[1:10], linebreak=T)
+
+regras03_sorted <- sort(regras03, by=c("lift", "confidence"), decreasing=T)
+inspect(regras03_sorted[1:10], linebreak=T)
+
+```
+
+## Análises 
+a) Quais as regras mais interessantes geradas a partir dessa base? Justifique.
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+As regras mais interessantes foram dadas pelo algoritmo Apriori considerando os valores de suporte = 0.005 e uma confiança = 0.7. Escolhemos esses valores de suporte e confiança dado que nosso conjunto de dados possuia poucos itens com valores frequentes e muitos com valores pouco frequentes e o intuito era capturar uma quantidade intermediária de regras de associação, isto é, um valor de suporte baixo para trazer mais regras e um valor de confiança alto para filtrar os casos de ocorrência. O intuito de tal ação foi capturar relacionamentos não explicítos nas nossas transações, dado que é senso comum que em uma padaria a expectativa é que Coffee e Bread sejam os itens mais consumidos, por exemplo.
+Classificamos as regras mais interessante como sendo as com um valor de lift elevado e uma confiança também elevada, listadas abaixo.
+
+```
+     lhs                        rhs      support confidence coverage  lift count
+[1]  {Extra Salami or Feta}  => {Salad}  0.00620      0.800  0.00775 31.26    16
+[2]  {Coffee,                                                                   
+      Extra Salami or Feta}  => {Salad}  0.00543      0.778  0.00698 30.39    14
+[3]  {Extra Salami or Feta}  => {Coffee} 0.00698      0.900  0.00775  1.65    18
+[4]  {Extra Salami or Feta,                                                     
+      Salad}                 => {Coffee} 0.00543      0.875  0.00620  1.61    14
+```
+
+<!-- Fim da resposta -->
+
+# Atividade 3 -- Medidas de Interesse (*3,5 pts*)
+
+Vimos na aula que, mesmo após as podas do algoritmo `apriori`, ainda temos algumas regras com características indesejáveis como redundâncias e dependência estatística negativa. Também vimos algumas medidas que nos ajudam a analisar melhor essas regras como o lift, a convicção e a razão de chances. Nesta questão, escolha um dos conjuntos de regras geradas na atividade anterior e o analise usando essas medidas. Compute as três medidas para o conjunto escolhido com a função `interestMeasure` e experimente ordenar as regras com cada uma das novas medidas.
+
+Dica: para adicionar as medidas em um conjunto de regras qualquer, você pode utilizar o comando `cbind` e a função `quality`:
+```
+quality(regras) <- cbind(quality(regras), interestMeasure(regras, measure=c("conviction", "oddsRatio"), 
+                                          transactions = transacoes))
+```
+
+
+```{r atv3-code}
+# Compute as medidas de interesse 
+regras <- regras02
+quality(regras) <- cbind(quality(regras), 
+                           interestMeasure(regras, 
+                                           measure=c("conviction", "oddsRatio"), 
+                                           transactions=bakery_data))
+inspect(regras, linebreak=T)
+plot(regras, method= "graph")
+
+# Apresente as regras ordenadas por lift
+rlift_sorted <- sort(regras, by=c("lift"), decreasing=T)
+inspect(rlift_sorted, linebreak=T)
+
+# Apresente as regras ordenadas por convicção
+rconvic_sorted <- sort(regras, by=c("conviction"), decreasing=T)
+inspect(rconvic_sorted, linebreak=T)
+
+# Apresente as regras ordenadas por razão de chances
+roddsr_sorted <- sort(regras, by=c("oddsRatio"), decreasing=T)
+inspect(roddsr_sorted, linebreak=T)
+
+
+```
+
+
+## Análise 
+a) Quais as regras mais interessantes do conjunto? Justifique.
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+As regras mais interessantes encontradas foram aquelas que possuiam valores altos em lift, conviction e oddsRatio, dadas abaixo:
+
+```
+     lhs                        rhs      support confidence coverage  lift count conviction oddsRatio
+[1]  {Extra Salami or Feta}  => {Salad}  0.00620      0.800  0.00775 31.26    16       4.87    200.72
+[2]  {Coffee, Extra Salami or Feta}  => {Salad}  0.00543      0.778  0.00698 30.39    14       4.38    168.88
+
+```
+      
+Escolhemos tais regras por conta de explicitarem relacionamentos não triviais que podemos ter entre os produtos de uma padaria. Também levamos em conta o fato de que quanto maior o valor de lift mais certo é que os itens do conjunto esquerdo influenciem nos itens do conjunto direito. O mesmo conceito se aplica para a métrica OddsRatio e no caso da métrica conviction temos que valores entre 1 e 5 representam boas regras, que é o nosso caso.
+<!-- Fim da resposta -->
+
