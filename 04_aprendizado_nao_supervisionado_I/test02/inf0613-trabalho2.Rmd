@@ -1,0 +1,261 @@
+---
+title:  INF0613 -- Aprendizado de Máquina Não Supervisionado
+output: pdf_document
+subtitle: Trabalho 2 - Redução de Dimensionalidade
+author: 
+  - Leonardo Cesar Silva dos Santos
+  - Fernando Augusto Cardoso Candalaft
+---
+
+<!-- !!!!! Atenção !!!!! -->
+<!-- Antes de fazer qualquer alteração neste arquivo, reabra-o com 
+o encoding correto: 
+File > Reopen with encoding > UTF-8
+-->
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = FALSE, message = FALSE, warning = FALSE, tidy = FALSE)
+options(digits = 3)
+```
+
+O objetivo deste trabalho é exercitar o conhecimento de técnicas de redução de dimensionalidade. Essas técnicas serão usadas tanto para obtenção de características quanto para visualização dos conjuntos de dados. 
+Usaremos a base de dados `speech.csv`, que está disponível na página da disciplina no Moodle. A base contém amostras da pronúncia em inglês das letras do alfabeto.
+
+# Atividade 0 -- Configurando o ambiente
+Antes de começar a implementação do seu trabalho configure o _workspace_ e importe todos os pacotes e execute o preprocessamento da base:
+
+```{r atv0-code}
+# Adicione os demais pacotes usados neste trabalho:
+library(ggplot2)
+library(umap)
+library(Rtsne)
+
+# Configure ambiente de trabalho na mesma pasta 
+# onde colocou a base de dados:
+setwd("~/workspace/mdc/04_aprendizado_nao_supervisionado_I/test02")
+
+# Pré-processamento da base de dados
+# Lendo a base de dados
+speech <- read.csv("speech.csv", header=TRUE)
+dim(speech)
+
+# Convertendo a coluna 618 em characteres 
+speech$LETRA <- LETTERS[speech$LETRA]
+
+```
+
+
+
+# Atividade 1 -- Análise de Componentes Principais (*3,5 pts*)
+
+Durante a redução de dimensionalidade, espera-se que o poder de representação do conjunto de dados seja mantido, para isso é preciso realizar uma análise da variância mantida em cada componente principal obtido. Use função  `prcomp`, que foi vista em aula, para criar os autovetores e autovalores da base de dados. Não use a normalização dos atributos, isto é, defina  `scale.=FALSE`. 
+Em seguida, use o comando `summary`, analise o resultado e os itens a seguir:
+
+
+<!-- Use o comando: options(max.print=2000) para visualizar o resultado 
+do comando summary e fazer suas análises. Não é necessário que toda informação 
+do comando summary apareça no PDF a ser submetido. Desse modo, repita o comando 
+com um valor mais baixo antes de gerar a versão final do PDF. -->
+
+```{r atv1-code}
+
+# Executando a redução de dimensionalidade com o prcomp
+speech_pca <- prcomp(speech[, 1:617], scale.=FALSE)
+
+# Analisando as componentes com o comando summary
+options(max.print=2000)
+summary(speech_pca)
+```
+
+## Análise
+
+a) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `80%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+São necessárias 38 componentes principais para termos uma variância acumulada total de pelo menos 0.8.
+
+<!-- Fim da resposta -->
+
+b) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `90%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+São necessárias 91 componentes principais para termos uma variância acumulada total de pelo menos 0.9.
+
+<!-- Fim da resposta -->
+
+c) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `95%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+São necessárias 170 componentes principais para termos uma variância acumulada total de pelo menos 0.95.
+
+<!-- Fim da resposta -->
+
+d) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `99%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+São necessárias 382 componentes principais para termos uma variância acumulada total de pelo menos 0.99.
+
+<!-- Fim da resposta -->
+
+e) Faça um breve resumo dos resultados dos itens *a)-d)* destacando o impacto da redução de dimensionalidade. 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+O nosso conjunto de dados possui dimensão 6238 por 618 (sem contar a coluna categórica que possui a informação das classes). Deste modo, o custo computacional e esforço para se analisar tal base é considerável. Com o auxílio do PCA podemos ver que conseguimos ter um grau de explicabilidade dos dados da base de 99% usando aproximadamente metade da dimensão total e também uma variação captada de 90% se usarmos somente 91 componentes, ou seja, temos um grau de relevância de informação considerável usando 1/6 do número total de features, algo que pode ajudar a reduzir o custo de possíveis análises sem perder a qualidade.
+
+<!-- Fim da resposta -->
+
+# Atividade 2 -- Análise de Componentes Principais e Normalização (*3,5 pts*)
+
+A normalização de dados em alguns casos, pode trazer benefícios. Nesta questão, iremos analisar o impacto dessa prática na redução da dimensionalidade da base de dados `speech.csv`. Use função  `prcomp` para criar os autovetores e autovalores da base de dados usando a normalização dos atributos, isto é, defina `scale.=TRUE`. 
+Em seguida, use o comando `summary`, analise o resultado e os itens a seguir:
+
+```{r atv2-code}
+
+# Executando a redução de dimensionalidade com o prcomp
+ # com normalização dos dados
+speech_pca_normalized <- prcomp(speech[, 1:617], scale. = TRUE)
+
+# Analisando as componentes com o comando summary
+summary(speech_pca_normalized)
+
+```
+
+## Análise
+
+a) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `80%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+São necessárias 48 componentes principais para termos uma variância acumulada total de pelo menos 0.8.
+
+<!-- Fim da resposta -->
+
+b) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `90%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+
+São necessárias 112 componentes principais para termos uma variância acumulada total de pelo menos 0.9.
+<!-- Fim da resposta -->
+
+c) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `95%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+São necessárias 200 componentes principais para termos uma variância acumulada total de pelo menos 0.95.
+
+<!-- Fim da resposta -->
+
+d) Qual o menor número de componentes, tal que a variância acumulada seja pelo menos `99%` do total? 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+São necessárias 400 componentes principais para termos uma variância acumulada total de pelo menos 0.99.
+
+<!-- Fim da resposta -->
+
+e) Quais as principais diferenças entre a aplicação do PCA nesse conjunto dados com e sem normalização?
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+No problema em questão tivemos que ao aplicar o PCA com os dados normalizados proporção cumulutiva demorou mais para atingir valores elevados de variância total.
+
+<!-- Fim da resposta -->
+
+f) Qual opção parece ser mais adequada para esse conjunto de dados? Justifique sua resposta. 
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+Considerando que o PCA aplicado aos dados normalizados necessitou de mais componentes principais para obter valores de variância mais elevados em comparação ao caso de quando não aplicamos normalização, temos que para o problema em questão, o método PCA sem normalização é melhor, dado que reduz mais rápido o espaço de trabalho e capta mais informação.
+
+<!-- Fim da resposta -->
+
+
+# Atividade 3 -- Visualização a partir da Redução (*3,0 pts*)
+
+Nesta atividade, vamos aplicar diferentes métodos de redução de dimensionalidade e comparar as visualizações dos dados obtidos considerando apenas duas dimensões. Lembre de fixar uma semente antes de executar o T-SNE.
+
+a) Aplique a redução de dimensionalidade com a técnica PCA e gere um gráfico de dispersão dos dados. Use a coluna `618` para classificar as amostras e definir uma coloração. 
+
+```{r atv3a-code}
+
+# Aplicando redução de dimensionalidade com a técnica PCA
+speech_pca <- prcomp(speech[, 1:617], scale. = FALSE)
+
+# Gerando o gráfico de dispersão
+components <- as.data.frame(speech_pca$x)
+components$class <- speech[, 618]
+names(components)
+
+grafico <- ggplot(components, 
+                  aes(x=PC1, y=PC2, color=class)) +
+  geom_point() +
+  labs(title = "Gráfico de Dispersão com Cores das Classes",
+       x = "Componente 1",
+       y = "Componente 2",
+       color = "Classe")
+print(grafico)
+
+```
+
+b) Aplique a redução de dimensionalidade com a técnica UMAP e gere um gráfico de dispersão dos dados. Use a coluna `618` para classificar as amostras e definir uma coloração. 
+
+```{r atv3b-code}
+
+# Aplicando redução de dimensionalidade com a técnica UMAP
+set.seed(42)
+speech_umap <- umap(as.matrix(speech[, 1:617]))
+
+# Gerando o gráfico de dispersão
+names(speech_umap)
+
+components <- as.data.frame(speech_umap$layout)
+components$class <- speech[, 618]
+names(components)
+
+grafico <- ggplot(components, 
+                  aes(x=V1, y=V2, color=class)) +
+  geom_point() +
+  labs(title = "Gráfico de Dispersão com Cores das Classes",
+       x = "Componente 1",
+       y = "Componente 2",
+       color = "Classe")
+print(grafico)
+
+```
+
+c) Aplique a redução de dimensionalidade com a técnica T-SNE e gere um gráfico de dispersão dos dados. Use a coluna `618` para classificar as amostras e definir uma coloração. 
+
+```{r atv3c-code}
+
+# Aplicando redução de dimensionalidade com a técnica T-SNE
+
+set.seed(42)
+speech_tsne <- Rtsne(speech[, 1:617], dims=2, perplexity=25, verbose=T, max_iter=400)
+
+# Gerando o gráfico de dispersão
+names(speech_tsne)
+names(speech_tsne$Y)
+
+components <- as.data.frame(speech_tsne$Y)
+components$class <- speech[, 618]
+names(components)
+
+grafico <- ggplot(components, 
+                  aes(x=V1, y=V2, color=class)) +
+  geom_point() +
+  labs(title = "Gráfico de Dispersão com Cores das Classes",
+       x = "Componente 1",
+       y = "Componente 2",
+       color = "Classe")
+print(grafico)
+
+
+```
+
+
+## Análise
+
+d) Qual técnica você acredita que apresentou a melhor projeção? Justifique.
+
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+O algoritmo t-SNE se apresentou melhor com relação ao PCA e o UMAP, uma vez que conseguiu delimitar melhor as divisões entre cada classe. Se considerarmos ainda o fato de que o algoritmo t-SNE pode ser melhorado se ajustarmos os parâmetros "perplexity" e "max_iter", fica claro que ele se saiu melhor para o problema em questão.
+
+<!-- Fim da resposta -->
+
