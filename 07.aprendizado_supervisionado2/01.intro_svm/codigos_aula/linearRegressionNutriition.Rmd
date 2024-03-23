@@ -1,0 +1,108 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#################################
+# MDC - Machine Learning		      #
+# Linear Regression				      #
+# Abalone						            #
+#################################
+
+#Set seed
+set.seed(42)
+
+# Load the data
+data <- read.csv("nutrition_train.csv", header=TRUE) 
+
+# Header names
+names(data)
+
+# Inspect data
+summary(data)
+
+```
+```{r}
+########### Train / Val splits ###########
+# 80% train / 20% Val
+randomTrainIndexes <- sample(1:nrow(data), size=0.8*nrow(data))
+trainData <- data[randomTrainIndexes,]
+valData <- data[-randomTrainIndexes,]
+
+
+# Inspect trainData
+any(is.na(trainData))  #is there any data missing?
+
+cor(trainData[,2:70])  
+
+```
+
+```{r}
+# Let's plot some of the features
+
+#### Plot 01
+plot(trainData[,"totalFat"], ylab="value" )
+points(trainData[,"vitaminA"],  pch="*", col="red")
+points(trainData[,"calories"], pch="+", col="green")
+
+#### Plot 02
+plot(trainData[,"totalFat"], ylab="value" )
+points(trainData[,"calories"],  pch="*", col="red")
+```
+
+```{r}
+## Let's train a linear regression
+
+# Mesmo do anterior, sem precisar detalhar
+model_simple <- lm(formula = calories ~ totalFat + caffeine, data=trainData)
+
+summary(model_simple)
+
+valPred <- predict(model_simple, valData)
+summary(valPred)
+
+```
+
+```{r}
+#############################
+#### Define MAE function ####
+getMAE <- function(pred, true){
+    MAE <- sum(abs(pred - true)) / length(pred)
+    return(MAE)
+}
+
+#############################
+#### Define MSE function ####
+getMSE <- function(pred, true){
+    MSE <- sum((pred - true)**2) / length(pred)
+    return(MSE)
+}
+
+###################################
+#### Define R-squared function ####
+getRSQ <- function(pred, true){
+    rss <- sum((pred - true) ^ 2)
+    tss <- sum((true - mean(true)) ^ 2)
+    RSQ <- 1 - rss/tss
+    return(RSQ)
+}
+```
+
+
+```{r}
+
+# MAE
+MAE_simple <- getMAE(valPred, valData$calories)
+MAE_simple
+
+# MSE
+MSE_simple <- getMSE(valPred, valData$calories)
+MSE_simple
+
+# R-squared
+RSQ_simple <- getRSQ(valPred, valData$calories)
+RSQ_simple
+
+```
+
