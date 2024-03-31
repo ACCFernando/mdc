@@ -500,7 +500,7 @@ grafico <- ggplot(balanced_acc_df, aes(x = n_trees)) +
 print(grafico)
 # Para um numero de arvores na floresta entre 1 ou 2 temos um caso de UNDERFITTING, dado que nosso
 # modelo performa razoavelmente mal tanto em treino quanto em teste. Nunca atingimos um valor otimo
-# de fato, porem ha situacoes em que o modelo obtem um valor de razoavel de 
+# de fato, porem ha situacoes em que o modelo obtem um valor razoavel de 
 # acuracia balanceada sobre o conjunto de validacao
 
 # Retornando a melhor acuracia balanceada sobre os dados de validacao
@@ -661,70 +661,52 @@ number_of_trees <- 250
 m <- sqrt((ncol(train_df) - 1))
 m # 10
 accValRandomForest01 <- getRandomForestResults(number_of_trees, m, train_df, val_df, target_name, "POSITIVO", "NEGATIVO")
-# [1] "Numero de elementos na classe negativa:"
-# [1] 2142  101
-# [1] "Numero de elementos na classe positiva:"
-# [1] 558 101
-# [1] "Menor desse valores:"
-# [1] 558
 # [1] "-----------------------------"
-# [1] "True Negative Rate (TNR): 0.9 | True Positive Rate (TPR): 0.52"
-# [1] "Balanced Accuracy: 0.71"
+# [1] "True Negative Rate (TNR): 0.9 | True Positive Rate (TPR): 0.53"
+# [1] "Balanced Accuracy: 0.715"
 # [1] "Relative Confusion Matrix:"
 # Prediction
 # Reference  NEGATIVO POSITIVO
 # NEGATIVO     0.90     0.10
-# POSITIVO     0.48     0.52
+# POSITIVO     0.47     0.53
 # [1] "-----------------------------"
 # [1] "Best number of classifiers:"
 # Classifiers Balanced_Acc_Val
-# 135         136        0.7222872
+# 219        0.7182765
 
 # 50% do numero de features
 m <- (ncol(train_df) - 1)*0.5
 m # 50
 accValRandomForest02 <- getRandomForestResults(number_of_trees, m, train_df, val_df, target_name, "POSITIVO", "NEGATIVO")
-# [1] "Numero de elementos na classe negativa:"
-# [1] 2142  101
-# [1] "Numero de elementos na classe positiva:"
-# [1] 558 101
-# [1] "Menor desse valores:"
-# [1] 558
 # [1] "-----------------------------"
-# [1] "True Negative Rate (TNR): 0.85 | True Positive Rate (TPR): 0.65"
-# [1] "Balanced Accuracy: 0.75" **
+# [1] "True Negative Rate (TNR): 0.85 | True Positive Rate (TPR): 0.64"
+# [1] "Balanced Accuracy: 0.745"
 # [1] "Relative Confusion Matrix:"
 # Prediction
 # Reference  NEGATIVO POSITIVO
 # NEGATIVO     0.85     0.15
-# POSITIVO     0.35     0.65
+# POSITIVO     0.36     0.64
 # [1] "-----------------------------"
 # [1] "Best number of classifiers:"
 # Classifiers Balanced_Acc_Val
-# 27          28        0.7740363
+# 139        0.7579657
 
 # 75% do numero de features
 m <- (ncol(train_df) - 1)*0.75
 m # 75
 accValRandomForest03 <- getRandomForestResults(number_of_trees, m, train_df, val_df, target_name, "POSITIVO", "NEGATIVO")
-# [1] "Numero de elementos na classe negativa:"
-# [1] 2142  101
-# [1] "Numero de elementos na classe positiva:"
-# [1] 558 101
-# [1] "Menor desse valores:"
-# [1] 558
 # [1] "-----------------------------"
-# [1] "True Negative Rate (TNR): 0.82 | True Positive Rate (TPR): 0.67"
-# [1] "Balanced Accuracy: 0.745"
+# [1] "True Negative Rate (TNR): 0.83 | True Positive Rate (TPR): 0.65"
+# [1] "Balanced Accuracy: 0.74"
 # [1] "Relative Confusion Matrix:"
 # Prediction
 # Reference  NEGATIVO POSITIVO
-# NEGATIVO     0.82     0.18
-# POSITIVO     0.33     0.67
+# NEGATIVO     0.83     0.17
+# POSITIVO     0.35     0.65
 # [1] "-----------------------------"
 # [1] "Best number of classifiers:"
 # Classifiers Balanced_Acc_Val
-# 20          21        0.7674911
+# 34        0.7527852
 
 # Examinando os modelos
 length(2:number_of_trees)
@@ -737,29 +719,31 @@ rm_perf_df <- data.frame(classifiers=2:number_of_trees,
                          accValRandomForest03=accValRandomForest03)
 
 grafico <- ggplot(rm_perf_df, aes(x = classifiers)) +
-  geom_line(aes(y = accValRandomForest01, color = "RandomForest01")) +
-  geom_line(aes(y = accValRandomForest02, color = "RandomForest02")) +
-  geom_line(aes(y = accValRandomForest03, color = "RandomForest03")) +
+  geom_line(aes(y = accValRandomForest01, color = "RF1")) +
+  geom_line(aes(y = accValRandomForest02, color = "RF2")) +
+  geom_line(aes(y = accValRandomForest03, color = "RF3")) +
   labs(title = "Balanced Acc by # classifiers",
        x = "Number of classifiers",
        y = "Balanced Accuracy") +
-  scale_color_manual(values = c("RandomForest01" = "blue", 
-                                "RandomForest02" = "black",
-                                "RandomForest03" = "red")) +
+  scale_color_manual(values = c("RF1" = "blue", 
+                                "RF2" = "black",
+                                "RF3" = "red")) +
   theme_minimal()
 print(grafico)
 
-# O melhor foi o que usou 27 arvores e 50% das features
+# O melhor foi o que usou 139 arvores e 50% das features
 m <- (ncol(train_df) - 1)*0.5
 m # 50
-accValRandomForest02 <- getRandomForestResults(27, m, train_df, test_df, target_name, "POSITIVO", "NEGATIVO")
-# [1] "True Negative Rate (TNR): 0.85 | True Positive Rate (TPR): 0.54"
-# [1] "Balanced Accuracy: 0.695"
+accValRandomForest02 <- getRandomForestResults(139, m, train_df, test_df, target_name, "POSITIVO", "NEGATIVO")
+# [1] "-----------------------------"
+# [1] "True Negative Rate (TNR): 0.88 | True Positive Rate (TPR): 0.55"
+# [1] "Balanced Accuracy: 0.715"
 # [1] "Relative Confusion Matrix:"
 # Prediction
 # Reference  NEGATIVO POSITIVO
-# NEGATIVO     0.85     0.15
-# POSITIVO     0.46     0.54
+# NEGATIVO     0.88     0.12
+# POSITIVO     0.45     0.55
+# [1] "-----------------------------"
 
 
 
