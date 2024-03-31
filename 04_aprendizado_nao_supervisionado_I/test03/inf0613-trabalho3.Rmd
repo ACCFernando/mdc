@@ -173,7 +173,7 @@ a) *Gráfico \textsl{Elbow Curve}:* Construa um gráfico com a soma das distânc
 head(num_cars_df)
 
 fviz_nbclust(
-  filtered_cars_df,
+  num_cars_df,
   FUNcluster = kmeans,
   method = "wss",
   k.max = 30
