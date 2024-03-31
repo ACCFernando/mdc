@@ -9,9 +9,13 @@ author:
 
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, error = FALSE, message = FALSE, warning = FALSE, tidy = FALSE)
-options(digits = 3)
-options(max.print = 300)
+knitr::opts_chunk$set(echo=TRUE, 
+                      error=FALSE, 
+                      message=FALSE, 
+                      warning=FALSE, 
+                      tidy=FALSE)
+options(digits=3)
+options(max.print=300)
 set.seed(42) # Reprodutibilidade
 ```
 
@@ -126,9 +130,10 @@ cat_cars_df[, make] <- NULL
 names(cat_cars_df)
 head(cat_cars_df)
 
-# Como estamos trabalhando com algoritmos baseados em distancia vamos normalizar os # nossos dados de modo a termos todos na mesma escala
+# Como estamos trabalhando com algoritmos baseados em distancia vamos normalizar os 
+# nossos dados de modo a termos todos na mesma escala
 dim(num_cars_df)
-# num_cars_df <- cbind(scale(num_cars_df[, 1:15]), num_cars_df[, c(16, 17)])
+
 num_cars_df <- as.data.frame(scale(num_cars_df))
 
 # Analisando as colunas categoricas a mais descritiva eh a V4, que informa se o carro eh movido a gas ou oleo
@@ -149,7 +154,7 @@ Após as implementações escreva uma análise da base de dados. Em especial, de
 A base de dados contem informacoes sobre carros e suas respectivas chances de risco de seguro. A base em questao possui valores faltantes os quais estavam representados pelo caracter "?". Tais valores faltantes influenciaram de modo negativo o tipo dos dados de modo que um tratamento adequado foi necessario. 
 
 Para tal tratamento, primeiro substituimos todos os valores "?" por NA de modo que fazer a coersão dos dados para o tipo numérico fosse mais simples. 
-Como método de substituição de valores ausentes optamos por utilizar a mediana para os valores numéricos de modo a garantir que não iríamos alterar a distribuição dos dados. Já para os valores categóricos optamos por utilizar a moda, já que esta toma o valor mais frequente.
+Como método de substituição de valores ausentes optamos por utilizar a mediana para os valores numéricos de modo a tentar garantir que não iríamos alterar a distribuição dos dados. Já para os valores categóricos optamos por utilizar a moda, já que esta toma o valor mais frequente.
 
 Os atributos escolhidos para serem usados na etapa de agrupamento foram os atributos numéricos, exceto as colunas symboling e a coluna make. 
 
@@ -204,7 +209,13 @@ kmeans_cluster
 
 
 # Construindo um gráfico de dispersão
-fviz_cluster_obj <- fviz_cluster(kmeans_cluster, data=num_cars_df, geom="point", stand = FALSE) + ggtitle("K-Means clustering with K=8") + theme(legend.position = "bottom")
+fviz_cluster_obj <- fviz_cluster(kmeans_cluster, 
+                                 data=num_cars_df, 
+                                 geom="point", 
+                                 stand=FALSE) + 
+  ggtitle("K-Means clustering with K=8") + 
+  theme(legend.position = "bottom")
+
 fviz_cluster_obj
 
 ```
@@ -288,7 +299,6 @@ Analisamos 3 possibilidades para os valores de minPts, no caso 4, 8 e 5 e alguns
 cluster_results <- as.factor(kmeans_cluster$cluster)
 
 # Adicionando as classes ao dataframe
-num_cars_df <- cbind(num_cars_df, cluster=cluster_results, symboling=cars_df[, symboling], make=cars_df[, make])
 dim(num_cars_df)
 
 kmeans_fviz_df <- fviz_cluster_obj$data
@@ -327,10 +337,10 @@ Nas configurações apresentadas acima o algoritmo K-Means se adaptou melhor ao 
 
 O método K-Means retornou $8$ clusters e o métod DBScan retornou $2$ clusters.
 
-Analisando o campo Symboling podemos perceber que há uma confusão do algoritmo de agrupamento com relação as classes reais. Há alguns acertos, porem também há casos de overlap. 
-A mesma situação ocorre quando olhamos para a coluna Make (marca dos carros). Tal fato pode estar ligado ao número não ideal de clusters, uma vez que o mesmo não é aderente ao número de valores possíveis na coluna Symboling ou Make. Também podemos estar obtendo resultados não tão bons devido ao fato de estarmos usando todas as colunas numéricas, ao invés de usar um subconjunto das mesmas. Todos esses pontos são factíveis de investigação.
+Analisando o campo Symboling podemos perceber que há uma confusão do algoritmo de agrupamento K-Means com relação as classes reais. Há alguns acertos, porem também há casos de overlap. 
+A mesma situação ocorre quando olhamos para a coluna Make (marca dos carros). 
 
-
+Tal fato pode estar ligado ao número não ideal de clusters, uma vez que o mesmo não é aderente ao número de valores possíveis na coluna Symboling ou Make. Também podemos estar obtendo resultados não tão bons devido ao fato de estarmos usando todas as colunas numéricas, ao invés de usar um subconjunto das mesmas. Todos esses pontos são factíveis de investigação.
 
 <!-- Fim da resposta -->
 
