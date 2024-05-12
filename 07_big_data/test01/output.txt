@@ -1,0 +1,11 @@
+character,compound_polarity
+michael,0.15
+pam,0.13
+stanley,0.02
+kevin,0.09
+toby,0.09
+andy,0.14
+jim,0.14
+dwight,0.08
+angela,0.05
+erin,0.12
