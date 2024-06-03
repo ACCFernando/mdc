@@ -1,0 +1,349 @@
+---
+title: INF0613 -- Aprendizado de Máquina Não Supervisionado
+output: pdf_document
+subtitle: Trabalho 3 - Técnicas de Agrupamento
+author: 
+  - Leonardo Cesr Silva dos Santos
+  - Fernando Augusto Cardoso Candalaft
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo=TRUE, 
+                      error=FALSE, 
+                      message=FALSE, 
+                      warning=FALSE, 
+                      tidy=FALSE)
+options(digits=3)
+options(max.print=300)
+set.seed(42) # Reprodutibilidade
+```
+
+
+O objetivo deste trabalho é exercitar o uso de algoritmos de agrupamento. Neste trabalho, vamos analisar diferentes atributos de carros com o objetivo de verificar se seus atributos são suficientes para indicar um valor de risco de seguro. O conjunto de dados já apresenta o risco calculado no campo `symboling` indicado na Tabela 1. Quanto mais próximo de 3, maior o risco. O conjunto de dados que deve ser usado está disponível na página do Moodle com o nome `imports-85.data`.
+
+# Atividade 0 -- Configurando o ambiente
+Antes de começar a implementação do seu trabalho configure o _workspace_ e importe todos os pacotes e execute o preprocessamento da base:
+
+```{r atv0-code}
+# Adicione os pacotes usados neste trabalho:
+library(factoextra)
+library(dbscan)
+library(ggrepel)
+library(ggplot2)
+
+# Configure ambiente de trabalho na mesma pasta 
+# onde colocou a base de dados:
+setwd("~/workspace/mdc/04_aprendizado_nao_supervisionado_I/test03")
+
+
+```
+
+
+
+# Atividade 1 -- Análise e Preparação dos Dados
+
+O conjunto de dados é composto por 205 amostras com 26 atributos cada descritos na Tabela 1. Os atributos são dos tipos `factor`, `integer` ou  `numeric`. O objetivo desta etapa é a análise e preparação desses dados de forma a ser possível agrupá-los nas próximas atividades. 
+
+**Implementações:** Nos itens a seguir você implementará a leitura da base e aplicará tratamentos básicos.
+
+a) *Tratamento de dados Incompletos:* Amostras incompletas deverão ser tratadas, e você deve escolher a forma que achar mais adequada. Considere como uma amostra incompleta uma linha na qual faltam dados em alguma das colunas selecionadas anteriormente. Note que, dados faltantes nas amostras podem causar uma conversão do tipo do atributo de todas as amostras e isso pode impactar no item b). 
+
+```{r atv1a-code}
+# Leitura da base
+cars_df <- read.csv("./imports-85.data", header=F)
+head(cars_df)
+
+# Tratamento de dados faltantes
+summary(cars_df)
+
+for(col in names(cars_df)) {
+  print(paste("Column name:", col))
+  print(paste("NA values?: ", any(is.na(cars_df[, col]) ) ) )
+  print("Unique values")
+  print(unique(cars_df[, col]) )
+  print("---------------------------")
+}
+# Os valores faltantes estao representados na base pelo caracter "?"
+cols_with_missing_values <- c()
+for(col in names(cars_df)) {
+  if("?" %in% unique(cars_df[, col])) {
+    cols_with_missing_values <- c(cols_with_missing_values, col)
+  }
+}
+
+cols_with_missing_values # "V2"  "V6"  "V19" "V20" "V22" "V23" "V26"
+unique(cars_df[, "V6"])
+
+for(col in cols_with_missing_values) {
+  cars_df[cars_df[, col] == "?", col] <- NA
+}
+unique(cars_df[, "V6"])
+
+# Corrigindo o tipo dos dados
+cars_df[, "V2"] <- as.numeric(cars_df[, "V2"])
+cars_df[, "V19"] <- as.numeric(cars_df[, "V19"])
+cars_df[, "V20"] <- as.numeric(cars_df[, "V20"])
+cars_df[, "V22"] <- as.numeric(cars_df[, "V22"])
+cars_df[, "V23"] <- as.numeric(cars_df[, "V23"])
+cars_df[, "V26"] <- as.numeric(cars_df[, "V26"])
+
+summary(cars_df) # Checando se as correcoes foram aplicadas
+
+# Substituindo valores NAs
+# Mediana para dados numericos
+for(col in c("V2", "V19", "V20", "V22", "V23", "V26")) {
+  cars_df[is.na(cars_df[, col]), col] <- median(cars_df[, col], na.rm=TRUE)
+}
+
+# Moda para dados categoricos
+cars_df$V6[is.na(cars_df$V6)] <- names(sort(table(cars_df$V6), decreasing=T))[1]
+
+any(is.na(cars_df)) # FALSE: Ajustes ok
+
+```
+
+b) *Seleção de Atributos:* Atributos não-numéricos não podem ser usados com as técnicas  agrupamento vistas em aula. Portanto, você deve selecionar um conjunto de atributos numéricos que serão usados para o agrupamento. Além disso você deve analisar se os atributos não-numéricos são descritivos para a realização dos agrupamentos. Caso um dos atributos não numéricos seja necessário, use a técnica do  *one hot encoding* para transformá-lo em numérico. **Não** aplique essa técnica nos atributos `symboling` e `make` para os agrupamentos subsequentes, eles não devem fazer parte do agrupamento. 
+
+```{r atv1b-code}
+# Seleção de atributos
+
+# Separando as variaveis categoricas que nao serao usadas para agrupamento
+symboling <- "V1"
+make <- "V3"
+
+unique(cars_df[, symboling])
+unique(cars_df[, make])
+
+# Selecionando as colunas numericas
+num_cars_df <- cars_df[, sapply(cars_df, is.numeric)]
+num_cars_df[, symboling] <- NULL
+num_cars_df[, make] <- NULL
+
+names(num_cars_df)
+
+# Selecionando as colunas categoricas
+cat_cars_df <- cars_df[, sapply(cars_df, is.character)]
+cat_cars_df[, symboling] <- NULL
+cat_cars_df[, make] <- NULL
+
+names(cat_cars_df)
+head(cat_cars_df)
+
+# Como estamos trabalhando com algoritmos baseados em distancia vamos normalizar os 
+# nossos dados de modo a termos todos na mesma escala
+dim(num_cars_df)
+
+num_cars_df <- as.data.frame(scale(num_cars_df))
+
+# Analisando as colunas categoricas a mais descritiva eh a V4, que informa se o carro eh movido a gas ou oleo
+# Vamos aplicar entao a tecnica one-hot encoding nessa coluna
+num_cars_df$gas <- as.numeric(cat_cars_df$V4 == "gas")
+num_cars_df$diesel <- as.numeric(cat_cars_df$V4 == "diesel")
+
+head(num_cars_df)
+
+```
+
+## Análises
+
+Após as implementações escreva uma análise da base de dados. Em especial, descreva o conjunto de dados inicial, relate como foi realizado o tratamento, liste quais os atributos escolhidos para manter na base e descreva a base de dados após os tratamentos listados. Explique todos os passos executados, mas sem copiar códigos na análise. Além disso justifique suas escolhas de tratamento nos dados faltantes e seleção de atributos.
+
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+A base de dados contem informacoes sobre carros e suas respectivas chances de risco de seguro. A base em questao possui valores faltantes os quais estavam representados pelo caracter "?". Tais valores faltantes influenciaram de modo negativo o tipo dos dados de modo que um tratamento adequado foi necessario. 
+
+Para tal tratamento, primeiro substituimos todos os valores "?" por NA de modo que fazer a coersão dos dados para o tipo numérico fosse mais simples. 
+Como método de substituição de valores ausentes optamos por utilizar a mediana para os valores numéricos de modo a tentar garantir que não iríamos alterar a distribuição dos dados. Já para os valores categóricos optamos por utilizar a moda, já que esta toma o valor mais frequente.
+
+Os atributos escolhidos para serem usados na etapa de agrupamento foram os atributos numéricos, exceto as colunas symboling e a coluna make. 
+
+Também normalizamos os dados numéricos uma vez que os algoritmos de agrupamento são baseados em cálculos de distância.
+
+Por fim, fizemos o processo de one hot encoding da coluna fuel-type, uma vez que essa possui informacoes relevantes sobre o tipo do carro, no caso se o carro é movido a gás ou diesel. Note que não normalizamos as colunas obtidas via one hot enconding.
+
+<!-- Fim da resposta -->
+
+
+# Atividade 2 -- Agrupamento com o $K$*-means*
+
+Nesta atividade, você deverá agrupar os dados com o algoritmo $K$*-means* e utilizará duas métricas básicas para a escolha do melhor $K$: a soma de distâncias intra-cluster e o coeficiente de silhueta. 
+
+**Implementações:** Nos itens a seguir você implementará a geração de gráficos para a análise das distâncias intra-cluster e do coeficiente de silhueta. Em seguida, você implementará o agrupamento dos dados processados na atividade anterior com o algoritmo $K$*-means* utilizando o valor de $K$ escolhido.  
+
+a) *Gráfico \textsl{Elbow Curve}:* Construa um gráfico com a soma das distâncias intra-cluster para $K$ variando de $1$ a $30$.
+
+```{r atv2a-code}
+# Construindo um gráfico com as distâncias intra-cluster
+head(num_cars_df)
+
+fviz_nbclust(
+  num_cars_df,
+  FUNcluster = kmeans,
+  method = "wss",
+  k.max = 30
+) + theme_minimal() + ggtitle("Elbow Method")
+
+```
+
+b) *Gráfico da Silhueta:* Construa um gráfico com o valor da silhueta para $K$ variando de $1$ a $30$.
+
+```{r atv2b-code}
+# Construindo um gráfico com os valores da silhueta
+fviz_nbclust(
+  num_cars_df,
+  FUNcluster = kmeans,
+  method = "silhouette",
+  k.max = 30
+) + theme_minimal() + ggtitle("Silhouette Method")
+
+
+```
+
+c) *Escolha do $K$:* Avalie os gráficos gerados nos itens anteriores e escolha o melhor valor  de $K$ com base nas informações desses gráficos e na sua análise. Se desejar, use também a função `NbClust` para ajudar nas análises. Com o valor de $K$ definido, utilize o rótulo obtido para cada amostra, indicando o grupo ao qual ela pertence, para gerar um gráfico de dispersão (atribuindo cores diferentes para cada grupo).
+
+```{r atv2c-code}
+# Aplicando o k-means com o k escolhido 
+kmeans_cluster <- kmeans(num_cars_df, centers=8, nstart=30)
+kmeans_cluster
+
+
+# Construindo um gráfico de dispersão
+fviz_cluster_obj <- fviz_cluster(kmeans_cluster, 
+                                 data=num_cars_df, 
+                                 geom="point", 
+                                 stand=FALSE) + 
+  ggtitle("K-Means clustering with K=8") + 
+  theme(legend.position = "bottom")
+
+fviz_cluster_obj
+
+```
+
+## Análises
+
+Descreva cada um dos gráficos gerados nos itens acima e analise-os. Inclua na sua análise as informações mais importantes que podemos retirar desses gráficos. Discuta sobre a escolha do valor $K$ e sobre a apresentação dos dados no gráfico de dispersão. 
+
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+Sabemos que pelo método Elbow o objetivo é selecionar um valor de $K$ que minimize o valor SSE intra-cluster. Já no método Slhouette queremos selecionar $K$ que maximize as médias intra-clusters e entre-clusters. Deste modo, faz sentido selecionarmos um valor de $K$ intermediário entre os dois métodos. Sendo assim, selecionamos o valor de $K=8$, uma vez que para este valor temos um ponto de mudança no método Elbow e no método Silhouette.
+Vale ressaltar que o método da Silhueta apresenta uma robustez maior com relação ao método Elbow, principalmente quando temos dados com formatos irregulares.
+
+O gráfico de dispersão com o resultado dos agrupamentos parecem agrupar bem os valores posicionados na região central superior, porém os grupos formados na região central inferior não possuem uma distância entre-grupos ideal, o que talvez indique que o valor de $K$ selecionado talvez não tenha sido ideal ou talvez a complexidade dos dados é demais para o algoritmo K-Means, que como visto em aula, possui suas limitações.
+
+<!-- Fim da resposta -->
+
+# Atividade 3 -- Agrupamento com o *DBscan*
+
+Nesta atividade, você deverá agrupar os dados com o algoritmo *DBscan*. Para isso será necessário experimentar com diferentes valores de *eps* e *minPts*. 
+
+a) *Ajuste de Parâmetros:* Experimente com valores diferentes para os parâmetros *eps* e *minPts*. Verifique o impacto dos diferentes valores nos agrupamentos.
+
+```{r atv3a-code}
+# Experimento com valores de eps e minPts
+db1 <- dbscan::dbscan(num_cars_df, eps=1.6, minPts=4)
+print(db1)
+
+# Experimento com valores de eps e minPts
+db2 <- dbscan::dbscan(num_cars_df, eps=1.2, minPts=8)
+print(db2)
+# Experimento com valores de eps e minPts
+db3 <- dbscan::dbscan(num_cars_df, eps=2.1, minPts=5)
+print(db3)
+```
+
+b) *Determinando Ruídos:* Escolha o valor de *minPts* que obteve o melhor resultado no item anterior e use a função `kNNdistplot` do pacote `dbscan` para determinar o melhor valor de *eps* para esse valor de *minPts*. Lembre-se que o objetivo não é remover todos os ruídos. 
+
+```{r atv3b-code}
+# Encontrando o melhor eps com o kNNdistplot
+minPts = 3 # Dado que para esse valor tivemos o menor valor de outliers
+dbscan::kNNdistplot(num_cars_df, k=5)
+
+# Valor otimo de distancia eh aproximadamente 3.1, que eh aonde temos um ponto de inflexao
+```
+
+c) *Visualizando os Grupos:* Após a escolha dos parâmetros *eps* e *minPts*, utilize o rótulo obtido para cada amostra, indicando o grupo ao qual ela pertence, para gerar um gráfico de dispersão (atribuindo cores diferentes para cada grupo).
+
+```{r atv3c-code}
+# Aplicando o DBscan com os parâmetros escolhidos
+db <- dbscan::dbscan(num_cars_df, eps=3.1, minPts=5)
+print(db)
+
+# Construindo um gráfico de dispersão
+fviz_cluster(db, 
+             data=num_cars_df, 
+             stand=F, 
+             ellipse=F, 
+             show.clust.cent=T, 
+             geom="point") + ggtitle("DBScan clustering with 2 clusters")
+
+```
+
+## Análises
+
+Descreva os experimentos feitos para a escolha dos parâmetros *eps* e *minPts*. Inclua na sua análise as informações mais importantes que podemos retirar dos gráficos gerados. Justifique a escolha dos valores dos parâmetros e analise a apresentação dos dados no gráfico de dispersão. 
+
+
+**Resposta:** <!-- Escreva sua resposta abaixo -->
+Analisamos 3 possibilidades para os valores de minPts, no caso 4, 8 e 5 e alguns valores de distancia. Com base nos resultados obtidos selecionamos o valor de minPts com a menor quantidade de outliers. Após isso, usamos o gráfico *kNNDisplot* para avaliar quando ocorria o ponto de inflexão no gráfico de distâncias de modo a selecionar o melhor valor para *eps*, que no caso foi aproximadamente $3.1$. Feito isso, obtivemos uma separação razoável e interpretável entre os dados, na qual temos uma concentração dos dados na região central e na região central inferior, cada uma representando um agrupamento, e alguns pontos identificados como outliers, não fazendo estes parte de nenhum grupo.
+
+<!-- Fim da resposta -->
+
+# Atividade 4 -- Comparando os Algoritmos
+
+<!-- Use o espaço abaixo para escrever os códigos necessários 
+	para responder as perguntas a seguir  -->
+
+```{r atv4-code}
+
+cluster_results <- as.factor(kmeans_cluster$cluster)
+
+# Adicionando as classes ao dataframe
+dim(num_cars_df)
+
+kmeans_fviz_df <- fviz_cluster_obj$data
+kmeans_fviz_df$symboling <- cars_df[, symboling]
+kmeans_fviz_df$make <- cars_df[, make]
+
+head(kmeans_fviz_df)
+
+
+ggplot(kmeans_fviz_df, aes(x = x, y = y, color = cluster, label = symboling)) +
+  geom_point() +
+  geom_text_repel(max.overlaps=40) +  # Adiciona os rótulos sem sobreposição
+  ggtitle("Gráfico de Dispersão com os Rótulos de Cluster e Symboling")
+
+ggplot(kmeans_fviz_df, aes(x = x, y = y, color = cluster, label = make)) +
+  geom_point() +
+  geom_text_repel(max.overlaps=70) +  # Adiciona os rótulos sem sobreposição
+  ggtitle("Gráfico de Dispersão com os Rótulos de Cluster e Make")
+
+
+```
+
+Com base nas atividades anteriores, faça uma conclusão dos seus experimentos respondendo às seguintes perguntas: 
+
+a) Qual dos métodos apresentou melhores resultados? Justifique.
+
+b) Quantos agrupamentos foram obtidos para cada método?
+
+c) Analisando o campo `symboling` e o grupo designado para cada amostra, os agrupamentos conseguiram separar os níveis de risco? Dica: utilize o comando `table` para visualizar os dados de cada grupo em relação ao campo `symboling`.
+
+d) Analisando o campo `make` que contém as marcas dos carros, os agrupamentos conseguiram separar as marcas? Dica: utilize o comando `table` para visualizar os dados de cada grupo em relação ao campo `make`.
+
+
+**Respostas:** <!-- Escreva sua resposta abaixo -->
+Nas configurações apresentadas acima o algoritmo K-Means se adaptou melhor ao problema, uma vez que retornou uma quantidade mais adequada de clusters se comparado ao método DBScan, isto é, o nível de informação do K-Means foi mais assertivo.
+
+O método K-Means retornou $8$ clusters e o métod DBScan retornou $2$ clusters.
+
+Analisando o campo Symboling podemos perceber que há uma confusão do algoritmo de agrupamento K-Means com relação as classes reais. Há alguns acertos, porem também há casos de overlap. 
+A mesma situação ocorre quando olhamos para a coluna Make (marca dos carros). 
+
+Tal fato pode estar ligado ao número não ideal de clusters, uma vez que o mesmo não é aderente ao número de valores possíveis na coluna Symboling ou Make. Também podemos estar obtendo resultados não tão bons devido ao fato de estarmos usando todas as colunas numéricas, ao invés de usar um subconjunto das mesmas. Todos esses pontos são factíveis de investigação.
+
+<!-- Fim da resposta -->
+
+
+
+
